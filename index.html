@@ -139,6 +139,7 @@ input[readonly]{color:var(--dim);}
 .rule-reminder{background:rgba(74,144,217,.06);border:1px solid rgba(74,144,217,.2);border-radius:6px;padding:12px 14px;margin-bottom:16px;}
 .rule-reminder-title{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--blue);margin-bottom:8px;}
 .rule-items{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+@media(max-width:700px){.rule-items{grid-template-columns:1fr 1fr;}}
 .rule-item{font-size:11px;color:var(--text);background:var(--bg3);border-radius:4px;padding:8px 10px;}
 .rule-item-title{font-size:9px;color:var(--dim);margin-bottom:3px;font-weight:700;}
 
@@ -227,9 +228,12 @@ input[readonly]{color:var(--dim);}
   <div class="rule-reminder">
     <div class="rule-reminder-title">📋 規則速查</div>
     <div class="rule-items">
-      <div class="rule-item"><div class="rule-item-title">00631L</div>停損-15% / 停利+20% / 持有上限12個月</div>
       <div class="rule-item"><div class="rule-item-title">00985A</div>每月定額$4,000 / 不設停利 / 結構轉空才停止</div>
       <div class="rule-item"><div class="rule-item-title">2330</div>≤$2,200分批加碼 / 基本面改變才賣 / 持有10-20年</div>
+      <div class="rule-item"><div class="rule-item-title">00631L</div>停損-15% / 停利+20% / 持有上限12個月</div>
+      <div class="rule-item"><div class="rule-item-title">00646</div>每月定額$4,000 / 不設停利 / 長期持有</div>
+      <div class="rule-item"><div class="rule-item-title">00990B</div>長期持有 / 月配息 / 債券防禦部位</div>
+      <div class="rule-item"><div class="rule-item-title">小龍基金</div>每月定額$2,000 / 觀察3年 / 對比00985A績效</div>
     </div>
   </div>
 
@@ -412,9 +416,12 @@ input[readonly]{color:var(--dim);}
   <div class="history-toolbar">
     <select class="history-filter" id="filter-stock" onchange="renderHistory()">
       <option value="">全部標的</option>
-      <option value="00631L">00631L</option>
       <option value="00985A">00985A</option>
       <option value="2330">2330</option>
+      <option value="00631L">00631L</option>
+      <option value="00646">00646</option>
+      <option value="00990B">00990B</option>
+      <option value="dragon">小龍基金</option>
     </select>
     <select class="history-filter" id="filter-action" onchange="renderHistory()">
       <option value="">全部動作</option>
@@ -586,9 +593,9 @@ input[readonly]{color:var(--dim);}
       <div class="holding-type us">美股 ETF</div>
     </div>
     <div class="holding-grid">
-      <div class="holding-field"><div class="holding-field-label">持股數</div><div class="holding-field-val" id="h-00646-qty">136 股</div></div>
-      <div class="holding-field"><div class="holding-field-label">成本均價</div><div class="holding-field-val" id="h-00646-cost">~$73</div></div>
-      <div class="holding-field"><div class="holding-field-label">總成本</div><div class="holding-field-val" id="h-00646-total-cost">~$9,928</div></div>
+      <div class="holding-field"><div class="holding-field-label">持股數</div><div class="holding-field-val" id="h-00646-qty">— 股（本週購入）</div></div>
+      <div class="holding-field"><div class="holding-field-label">成本均價</div><div class="holding-field-val" id="h-00646-cost">待確認</div></div>
+      <div class="holding-field"><div class="holding-field-label">總成本</div><div class="holding-field-val" id="h-00646-total-cost">~$10,000</div></div>
     </div>
     <div class="holding-price-input">
       <label>今日市價</label>
@@ -1067,7 +1074,7 @@ const HOLDINGS = [
   { id:'00985A', qty:1182, cost:17.26, priceId:'p-00985A-price', pnlId:'h-00985A-pnl' },
   { id:'2330',   qty:6,    cost:1900,  priceId:'p-2330-price',   pnlId:'h-2330-pnl'   },
   { id:'00631L', qty:1000, cost:35.46, priceId:'p-00631L-price', pnlId:'h-00631L-pnl' },
-  { id:'00646',  qty:136,  cost:73,    priceId:'p-00646-price',  pnlId:'h-00646-pnl'  },
+  { id:'00646',  qty:0,    cost:0,     priceId:'p-00646-price',  pnlId:'h-00646-pnl'  },
   { id:'00990B', qty:1000, cost:10,    priceId:'p-00990B-price', pnlId:'h-00990B-pnl' },
   { id:'dragon', qty:0,    cost:0,     priceId:'p-dragon-price', pnlId:'h-dragon-pnl' },
 ];
