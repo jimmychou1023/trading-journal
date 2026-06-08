@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>交易日誌 v2</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Share+Tech+Mono&display=swap');
+:root{
+  --bg:#0e1117;--bg2:#161b24;--bg3:#1c2330;--border:#232e3e;
+  --text:#c8d4e0;--dim:#4a5568;--bright:#e8f0f8;
+  --red:#e05252;--green:#3db87a;--yellow:#e8b84b;--blue:#4a90d9;--purple:#9b72cf;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans TC',sans-serif;padding:20px;max-width:900px;margin:0 auto;}
+
+.page-title{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:3px;color:var(--dim);text-transform:uppercase;margin-bottom:6px;}
+h1{font-size:20px;font-weight:700;color:var(--bright);margin-bottom:4px;}
+.subtitle{font-size:11px;color:var(--dim);margin-bottom:24px;}
+
+.tabs{display:flex;gap:2px;margin-bottom:20px;border-bottom:1px solid var(--border);}
+.tab{padding:8px 16px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue);}
+.tab:hover{color:var(--text);}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+.form-section{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:16px;}
+.form-section-title{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--dim);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.form-section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.field{display:flex;flex-direction:column;gap:5px;}
+label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);}
+input,select,textarea{background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:'Noto Sans TC',sans-serif;font-size:12px;padding:8px 10px;outline:none;transition:border-color .2s;}
+input:focus,select:focus,textarea:focus{border-color:var(--blue);}
+textarea{resize:vertical;min-height:60px;}
+select option{background:var(--bg3);}
+input[readonly]{color:var(--dim);}
+
+.emotion-group{display:flex;gap:6px;flex-wrap:wrap;}
+.emotion-btn{padding:5px 10px;border-radius:4px;border:1px solid var(--border);background:var(--bg3);color:var(--dim);font-size:11px;cursor:pointer;transition:all .2s;}
+.emotion-btn:hover{border-color:var(--blue);color:var(--blue);}
+.emotion-btn.selected{background:rgba(74,144,217,.15);border-color:var(--blue);color:var(--blue);}
+.emotion-btn.warn{border-color:var(--yellow);color:var(--yellow);background:rgba(232,184,75,.1);}
+
+.score-row{display:flex;gap:8px;align-items:center;}
+.score-btn{width:32px;height:32px;border-radius:4px;border:1px solid var(--border);background:var(--bg3);color:var(--dim);font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;}
+.score-btn:hover,.score-btn.selected{background:var(--blue);border-color:var(--blue);color:#fff;}
+
+.check-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.check-row:last-child{border-bottom:none;}
+.check-box{width:16px;height:16px;border:1.5px solid var(--border);border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+.check-row.checked .check-box{background:var(--green);border-color:var(--green);}
+.check-row.checked .check-box::after{content:'✓';color:#fff;font-size:10px;font-weight:700;}
+.check-label{font-size:12px;color:var(--text);}
+.check-row.checked .check-label{color:var(--dim);text-decoration:line-through;}
+
+.btn-primary{background:var(--blue);color:#fff;border:none;border-radius:5px;padding:10px 24px;font-size:13px;font-weight:700;cursor:pointer;transition:background .2s;width:100%;margin-top:4px;}
+.btn-primary:hover{background:#3a7bc8;}
+.btn-primary:disabled{background:var(--bg3);color:var(--dim);cursor:not-allowed;}
+
+/* Claude AI 分析區塊 */
+.ai-panel{background:var(--bg2);border:1px solid rgba(155,114,207,.3);border-radius:8px;padding:16px;margin-top:16px;display:none;}
+.ai-panel.visible{display:block;}
+.ai-panel-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.ai-badge{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;background:rgba(155,114,207,.2);color:var(--purple);padding:3px 8px;border-radius:3px;}
+.ai-loading{display:flex;align-items:center;gap:8px;color:var(--dim);font-size:12px;}
+.ai-dots{display:flex;gap:4px;}
+.ai-dot{width:6px;height:6px;border-radius:50%;background:var(--purple);animation:pulse 1.2s infinite;}
+.ai-dot:nth-child(2){animation-delay:.2s;}
+.ai-dot:nth-child(3){animation-delay:.4s;}
+@keyframes pulse{0%,100%{opacity:.3;}50%{opacity:1;}}
+.ai-content{font-size:12px;line-height:1.8;color:var(--text);white-space:pre-wrap;}
+.ai-content .verdict{display:inline-block;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:700;letter-spacing:1px;margin-bottom:8px;}
+.ai-content .verdict.pass{background:rgba(61,184,122,.2);color:var(--green);}
+.ai-content .verdict.warn{background:rgba(232,184,75,.2);color:var(--yellow);}
+.ai-content .verdict.fail{background:rgba(224,82,82,.2);color:var(--red);}
+
+/* 歷史記錄 */
+.history-toolbar{display:flex;gap:8px;margin-bottom:16px;align-items:center;}
+.history-filter{background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:11px;padding:6px 10px;outline:none;cursor:pointer;}
+.history-count{font-size:11px;color:var(--dim);margin-left:auto;}
+.btn-danger{background:transparent;border:1px solid var(--red);color:var(--red);border-radius:4px;padding:5px 12px;font-size:11px;cursor:pointer;transition:all .2s;}
+.btn-danger:hover{background:var(--red);color:#fff;}
+.btn-secondary{background:transparent;border:1px solid var(--border);color:var(--text);border-radius:4px;padding:5px 12px;font-size:11px;cursor:pointer;transition:all .2s;}
+.btn-secondary:hover{border-color:var(--blue);color:var(--blue);}
+.btn-green{background:transparent;border:1px solid var(--green);color:var(--green);border-radius:4px;padding:5px 12px;font-size:11px;cursor:pointer;transition:all .2s;}
+.btn-green:hover{background:var(--green);color:#fff;}
+.import-area{display:none;margin-top:10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:12px;}
+.import-area textarea{width:100%;min-height:80px;margin-bottom:8px;font-family:'Share Tech Mono',monospace;font-size:11px;}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--bg2);border:1px solid var(--green);color:var(--green);padding:10px 16px;border-radius:6px;font-size:12px;font-weight:700;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
+.toast.show{opacity:1;}
+
+.journal-entry{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:12px;position:relative;}
+.journal-entry.has-ai{border-left:2px solid var(--purple);}
+.entry-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.entry-date{font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--dim);}
+.entry-stock{font-family:'Share Tech Mono',monospace;font-size:14px;font-weight:700;color:var(--bright);}
+.entry-action{font-size:10px;font-weight:700;padding:2px 8px;border-radius:3px;letter-spacing:1px;}
+.entry-action.buy{background:rgba(61,184,122,.2);color:var(--green);}
+.entry-action.sell{background:rgba(224,82,82,.2);color:var(--red);}
+.entry-action.add{background:rgba(232,184,75,.2);color:var(--yellow);}
+.entry-action.hold{background:rgba(155,114,207,.2);color:var(--purple);}
+.entry-pnl{margin-left:auto;margin-right:48px;font-family:'Share Tech Mono',monospace;font-size:13px;font-weight:700;}
+.entry-pnl.profit{color:var(--green);}
+.entry-pnl.loss{color:var(--red);}
+.entry-body{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:11px;}
+.entry-field{color:var(--dim);}
+.entry-val{color:var(--text);}
+.entry-box{grid-column:1/-1;background:var(--bg3);border-radius:4px;padding:8px 10px;font-size:11px;color:var(--text);line-height:1.6;margin-top:4px;}
+.entry-box-label{font-size:9px;font-weight:700;letter-spacing:1px;color:var(--dim);text-transform:uppercase;margin-bottom:4px;}
+.entry-score{display:flex;gap:4px;}
+.score-dot{width:8px;height:8px;border-radius:50%;background:var(--border);}
+.score-dot.filled{background:var(--yellow);}
+.entry-ai{grid-column:1/-1;background:rgba(155,114,207,.06);border:1px solid rgba(155,114,207,.2);border-radius:4px;padding:8px 10px;margin-top:4px;font-size:11px;line-height:1.7;color:var(--text);white-space:pre-wrap;}
+.entry-ai-label{font-size:9px;font-weight:700;letter-spacing:1px;color:var(--purple);text-transform:uppercase;margin-bottom:4px;}
+.entry-delete{position:absolute;top:8px;right:8px;background:var(--bg3);border:1px solid var(--border);color:var(--dim);font-size:11px;cursor:pointer;padding:2px 8px;border-radius:3px;transition:all .2s;z-index:2;}
+.entry-delete:hover{color:var(--red);border-color:var(--red);background:rgba(224,82,82,.1);}
+
+/* 統計 */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:12px;}
+.stat-card-label{font-size:9px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;}
+.stat-card-val{font-family:'Share Tech Mono',monospace;font-size:20px;font-weight:700;}
+.stat-card-val.g{color:var(--green)}.stat-card-val.r{color:var(--red)}.stat-card-val.y{color:var(--yellow)}.stat-card-val.b{color:var(--blue)}
+
+.habit-list{background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.habit-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border);}
+.habit-item:last-child{border-bottom:none;}
+.habit-label{font-size:12px;color:var(--text);flex:1;}
+.habit-bar{width:120px;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;}
+.habit-fill{height:100%;border-radius:3px;transition:width .5s;}
+.habit-fill.g{background:var(--green);}
+.habit-fill.y{background:var(--yellow);}
+.habit-fill.r{background:var(--red);}
+.habit-pct{font-family:'Share Tech Mono',monospace;font-size:11px;width:36px;text-align:right;}
+
+.rule-reminder{background:rgba(74,144,217,.06);border:1px solid rgba(74,144,217,.2);border-radius:6px;padding:12px 14px;margin-bottom:16px;}
+.rule-reminder-title{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--blue);margin-bottom:8px;}
+.rule-items{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.rule-item{font-size:11px;color:var(--text);background:var(--bg3);border-radius:4px;padding:8px 10px;}
+.rule-item-title{font-size:9px;color:var(--dim);margin-bottom:3px;font-weight:700;}
+
+.storage-indicator{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--dim);margin-bottom:16px;}
+.storage-dot{width:6px;height:6px;border-radius:50%;background:var(--green);}
+
+.empty-state{text-align:center;padding:40px 20px;color:var(--dim);font-size:12px;}
+
+@media(max-width:600px){
+  .form-grid,.form-grid3,.entry-body,.rule-items,.stat-grid{grid-template-columns:1fr;}
+  .stat-grid{grid-template-columns:1fr 1fr;}
+  .history-toolbar{flex-wrap:wrap;}
+}
+</style>
+</head>
+<body>
+
+<div class="page-title">Investment Journal · 交易日誌</div>
+<h1>個人交易日誌 <span style="font-size:11px;color:var(--purple);font-family:'Share Tech Mono',monospace;font-weight:400;">v2 · AI增強版</span></h1>
+<div class="subtitle">每筆交易前後記錄，建立決策紀律 · 儲存於本機 · Claude即時分析</div>
+
+<div class="storage-indicator">
+  <div class="storage-dot" id="storage-dot"></div>
+  <span id="storage-status">資料儲存於瀏覽器本機（localStorage）</span>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('new')">＋ 新增記錄</div>
+  <div class="tab" onclick="switchTab('history')">歷史記錄</div>
+  <div class="tab" onclick="switchTab('stats')">統計分析</div>
+</div>
+
+<!-- ══════════ TAB 1: 新增 ══════════ -->
+<div id="tab-new" class="tab-content active">
+
+  <div class="rule-reminder">
+    <div class="rule-reminder-title">📋 規則速查</div>
+    <div class="rule-items">
+      <div class="rule-item"><div class="rule-item-title">00631L</div>停損-15% / 停利+20% / 持有上限12個月</div>
+      <div class="rule-item"><div class="rule-item-title">00985A</div>每月定額$4,000 / 不設停利 / 結構轉空才停止</div>
+      <div class="rule-item"><div class="rule-item-title">2330</div>≤$2,200分批加碼 / 基本面改變才賣 / 持有10-20年</div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-title">基本資訊</div>
+    <div class="form-grid3">
+      <div class="field">
+        <label>交易日期</label>
+        <input type="date" id="trade-date">
+      </div>
+      <div class="field">
+        <label>標的</label>
+        <select id="trade-stock">
+          <option value="">選擇標的</option>
+          <option value="00631L">00631L 元大台灣50正2</option>
+          <option value="00985A">00985A 野村台灣50</option>
+          <option value="2330">2330 台積電</option>
+          <option value="other">其他</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>動作</label>
+        <select id="trade-action" onchange="toggleHoldMode(this.value)">
+          <option value="buy">買進</option>
+          <option value="add">加碼</option>
+          <option value="sell">賣出（減碼）</option>
+          <option value="sell-all">全部出清</option>
+          <option value="hold">持有決策（未成交）</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>成交價格</label>
+        <input type="number" id="trade-price" placeholder="例：35.46">
+      </div>
+      <div class="field">
+        <label>數量（股）</label>
+        <input type="number" id="trade-qty" placeholder="例：500">
+      </div>
+      <div class="field">
+        <label>交易金額（自動）</label>
+        <input type="number" id="trade-amount" placeholder="自動計算" readonly>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section" id="hold-notice" style="display:none;background:rgba(155,114,207,.08);border-color:rgba(155,114,207,.3);">
+    <div style="font-size:12px;color:var(--purple);line-height:1.7;">
+      📝 <strong>持有決策記錄</strong>：用於記錄「考慮過但未執行」的交易決策。<br>
+      價格填當下市價，數量填現有持股數，進場理由填「持有理由」，出場條件維持現有設定。
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-title">進場前三問（必填）</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="field">
+        <label>① 進場理由（具體說明，不能只寫「看好」）</label>
+        <textarea id="reason" placeholder="例：費半大跌後，加權指數已回測月線支撐，外資空單開始縮減，判斷短期賣壓釋放完畢..."></textarea>
+      </div>
+      <div class="field">
+        <label>② 出場條件</label>
+        <div class="form-grid">
+          <div class="field">
+            <label>獲利目標</label>
+            <select id="exit-profit">
+              <option value="">不設定</option>
+              <option value="+5%">+5%</option>
+              <option value="+10%">+10%</option>
+              <option value="+15%">+15%</option>
+              <option value="+20%">+20%（00631L預設）</option>
+              <option value="+25%">+25%</option>
+              <option value="+30%">+30%</option>
+              <option value="+40%">+40%</option>
+              <option value="+50%">+50%</option>
+              <option value="custom">自訂價格</option>
+            </select>
+            <input type="text" id="exit-profit-custom" placeholder="輸入價格，例：$42.6" style="display:none;margin-top:6px;">
+          </div>
+          <div class="field">
+            <label>停損點</label>
+            <select id="exit-loss">
+              <option value="">不設定</option>
+              <option value="-5%">-5%</option>
+              <option value="-10%">-10%</option>
+              <option value="-15%">-15%（00631L預設）</option>
+              <option value="-20%">-20%</option>
+              <option value="-25%">-25%</option>
+              <option value="-30%">-30%</option>
+              <option value="-40%">-40%</option>
+              <option value="-50%">-50%</option>
+              <option value="custom">自訂價格</option>
+            </select>
+            <input type="text" id="exit-loss-custom" placeholder="輸入價格，例：$30.1" style="display:none;margin-top:6px;">
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label>③ 預期持有時間</label>
+        <select id="hold-period">
+          <option value="">選擇</option>
+          <option value="days">數天（短線）</option>
+          <option value="weeks">數週（波段）</option>
+          <option value="months">數個月（中期）</option>
+          <option value="1-2y">1-2年</option>
+          <option value="10y+">10年以上（長期）</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-section-title">決策品質評估</div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="field">
+        <label>交易當下的情緒狀態</label>
+        <div class="emotion-group" id="emotion-group">
+          <div class="emotion-btn" onclick="selectEmotion(this,'冷靜理性')">😐 冷靜理性</div>
+          <div class="emotion-btn" onclick="selectEmotion(this,'謹慎觀望')">🤔 謹慎觀望</div>
+          <div class="emotion-btn warn" onclick="selectEmotion(this,'略有興奮')">😊 略有興奮</div>
+          <div class="emotion-btn warn" onclick="selectEmotion(this,'FOMO追漲')">😬 FOMO追漲</div>
+          <div class="emotion-btn warn" onclick="selectEmotion(this,'恐慌殺出')">😨 恐慌殺出</div>
+          <div class="emotion-btn warn" onclick="selectEmotion(this,'貪婪加碼')">🤑 貪婪加碼</div>
+        </div>
+        <div style="font-size:9px;color:var(--yellow);margin-top:4px;">⚠ 若選擇橘色標籤，建議暫停24小時再執行</div>
+      </div>
+      <div class="field">
+        <label>本次交易符合規則程度（1–5分）</label>
+        <div class="score-row" id="score-group">
+          <div class="score-btn" onclick="selectScore(this,1)">1</div>
+          <div class="score-btn" onclick="selectScore(this,2)">2</div>
+          <div class="score-btn" onclick="selectScore(this,3)">3</div>
+          <div class="score-btn" onclick="selectScore(this,4)">4</div>
+          <div class="score-btn" onclick="selectScore(this,5)">5</div>
+          <span style="font-size:10px;color:var(--dim);margin-left:8px;">1=純情緒 5=完全依規則</span>
+        </div>
+      </div>
+      <div class="field">
+        <label>進場前五問確認</label>
+        <div id="checklist">
+          <div class="check-row" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-label">進場理由已明確寫下</div></div>
+          <div class="check-row" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-label">出場條件（停利+停損）已設定</div></div>
+          <div class="check-row" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-label">預期持有時間已確認</div></div>
+          <div class="check-row" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-label">本交易符合該標的角色設定</div></div>
+          <div class="check-row" onclick="toggleCheck(this)"><div class="check-box"></div><div class="check-label">決策基於規則而非情緒</div></div>
+        </div>
+      </div>
+      <div class="field" id="alternatives-field" style="display:none;">
+        <label>考慮過的其他選項</label>
+        <textarea id="alternatives" placeholder="例：考慮過全部停損出場、出一半減持，最終選擇繼續持有因為..."></textarea>
+      </div>
+      <div class="field">
+        <label>其他備註（市場環境、特殊事件）</label>
+        <textarea id="notes" placeholder="例：費半剛大跌10%，外資空單高水位，本次屬於逆勢佈局..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-primary" id="save-btn" onclick="saveEntry()">儲存並請 Claude 分析這筆交易</button>
+
+  <!-- Claude AI 分析區塊 -->
+  <div class="ai-panel" id="ai-panel">
+    <div class="ai-panel-header">
+      <div class="ai-badge">✦ Claude 分析</div>
+      <span style="font-size:11px;color:var(--dim);">即時決策紀律回饋</span>
+    </div>
+    <div id="ai-loading" class="ai-loading">
+      <div class="ai-dots">
+        <div class="ai-dot"></div>
+        <div class="ai-dot"></div>
+        <div class="ai-dot"></div>
+      </div>
+      <span>正在分析這筆交易...</span>
+    </div>
+    <div id="ai-result" class="ai-content" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- ══════════ TAB 2: 歷史 ══════════ -->
+<div id="tab-history" class="tab-content">
+  <div class="history-toolbar">
+    <select class="history-filter" id="filter-stock" onchange="renderHistory()">
+      <option value="">全部標的</option>
+      <option value="00631L">00631L</option>
+      <option value="00985A">00985A</option>
+      <option value="2330">2330</option>
+    </select>
+    <select class="history-filter" id="filter-action" onchange="renderHistory()">
+      <option value="">全部動作</option>
+      <option value="buy">買進</option>
+      <option value="add">加碼</option>
+      <option value="sell">賣出</option>
+      <option value="sell-all">全部出清</option>
+      <option value="hold">持有決策</option>
+    </select>
+    <span class="history-count" id="history-count"></span>
+    <button class="btn-green" onclick="exportJSON()">⬇ 匯出備份</button>
+    <button class="btn-secondary" onclick="toggleImport()">⬆ 匯入還原</button>
+    <button class="btn-danger" onclick="confirmClearAll()">清除全部</button>
+  </div>
+  <div class="import-area" id="import-area">
+    <div style="font-size:10px;color:var(--dim);margin-bottom:8px;font-weight:700;letter-spacing:1px;">貼上備份的 JSON 資料，匯入後將與現有資料合併（重複的記錄自動略過）</div>
+    <textarea id="import-text" placeholder='貼上 JSON 備份資料...'></textarea>
+    <div style="display:flex;gap:8px;">
+      <button class="btn-green" onclick="importJSON()">確認匯入</button>
+      <button class="btn-secondary" onclick="toggleImport()">取消</button>
+    </div>
+  </div>
+  <div id="history-list"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<!-- ══════════ TAB 3: 統計 ══════════ -->
+<div id="tab-stats" class="tab-content">
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-card-label">總交易筆數</div><div class="stat-card-val b" id="stat-total">0</div></div>
+    <div class="stat-card"><div class="stat-card-label">有AI分析</div><div class="stat-card-val" style="color:var(--purple)" id="stat-ai">0</div></div>
+    <div class="stat-card"><div class="stat-card-label">情緒交易次數</div><div class="stat-card-val y" id="stat-emotion">0</div></div>
+    <div class="stat-card"><div class="stat-card-label">平均決策評分</div><div class="stat-card-val y" id="stat-score">—</div></div>
+  </div>
+  <div style="font-size:11px;color:var(--dim);margin-bottom:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">決策習慣追蹤</div>
+  <div class="habit-list">
+    <div class="habit-item">
+      <div class="habit-label">進場前寫下理由</div>
+      <div class="habit-bar"><div class="habit-fill g" id="habit-reason" style="width:0%"></div></div>
+      <div class="habit-pct" id="habit-reason-pct">—</div>
+    </div>
+    <div class="habit-item">
+      <div class="habit-label">出場條件已設定</div>
+      <div class="habit-bar"><div class="habit-fill g" id="habit-exit" style="width:0%"></div></div>
+      <div class="habit-pct" id="habit-exit-pct">—</div>
+    </div>
+    <div class="habit-item">
+      <div class="habit-label">情緒冷靜（非警示情緒）</div>
+      <div class="habit-bar"><div class="habit-fill g" id="habit-calm" style="width:0%"></div></div>
+      <div class="habit-pct" id="habit-calm-pct">—</div>
+    </div>
+    <div class="habit-item">
+      <div class="habit-label">五問全部確認</div>
+      <div class="habit-bar"><div class="habit-fill g" id="habit-checklist" style="width:0%"></div></div>
+      <div class="habit-pct" id="habit-checklist-pct">—</div>
+    </div>
+    <div class="habit-item">
+      <div class="habit-label">有 Claude 分析紀錄</div>
+      <div class="habit-bar"><div class="habit-fill" style="background:var(--purple)" id="habit-ai" style="width:0%"></div></div>
+      <div class="habit-pct" id="habit-ai-pct">—</div>
+    </div>
+  </div>
+  <div style="font-size:10px;color:var(--dim);margin-top:8px;">* 統計數據依實際記錄即時計算</div>
+</div>
+
+<script>
+// ══════════ 狀態 ══════════
+const STORAGE_KEY = 'trading_journal_v2';
+let selectedEmotion = '';
+let selectedScore = 0;
+
+const WARN_EMOTIONS = ['FOMO追漲','恐慌殺出','貪婪加碼','略有興奮'];
+const ACTION_MAP = {buy:'買進',add:'加碼',sell:'賣出','sell-all':'全部出清',hold:'持有決策'};
+const ACTION_CLASS = {buy:'buy',add:'add',sell:'sell','sell-all':'sell',hold:'hold'};
+const HOLD_MAP = {days:'數天',weeks:'數週',months:'數個月','1-2y':'1-2年','10y+':'10年以上'};
+
+// ══════════ localStorage ══════════
+function loadEntries() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  } catch(e) { return []; }
+}
+
+function saveEntries(entries) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    updateStorageStatus();
+  } catch(e) {
+    alert('儲存失敗，localStorage 空間可能不足');
+  }
+}
+
+function updateStorageStatus() {
+  const entries = loadEntries();
+  const dot = document.getElementById('storage-dot');
+  const status = document.getElementById('storage-status');
+  const size = (JSON.stringify(entries).length / 1024).toFixed(1);
+  dot.style.background = 'var(--green)';
+  status.textContent = `已儲存 ${entries.length} 筆記錄於本機（${size} KB）`;
+}
+
+// ══════════ Tab ══════════
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('active', ['new','history','stats'][i] === name);
+  });
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if (name === 'history') renderHistory();
+  if (name === 'stats') renderStats();
+}
+
+// ══════════ 表單互動 ══════════
+document.getElementById('trade-price').addEventListener('input', calcAmount);
+
+document.getElementById('exit-profit').addEventListener('change', function() {
+  document.getElementById('exit-profit-custom').style.display = this.value === 'custom' ? 'block' : 'none';
+});
+document.getElementById('exit-loss').addEventListener('change', function() {
+  document.getElementById('exit-loss-custom').style.display = this.value === 'custom' ? 'block' : 'none';
+});
+document.getElementById('trade-qty').addEventListener('input', calcAmount);
+function calcAmount() {
+  const p = parseFloat(document.getElementById('trade-price').value) || 0;
+  const q = parseFloat(document.getElementById('trade-qty').value) || 0;
+  document.getElementById('trade-amount').value = p && q ? (p * q).toFixed(0) : '';
+}
+
+document.getElementById('trade-date').value = new Date().toISOString().split('T')[0];
+
+function selectEmotion(el, val) {
+  document.querySelectorAll('.emotion-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedEmotion = val;
+}
+
+function selectScore(el, val) {
+  document.querySelectorAll('.score-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedScore = val;
+}
+
+function toggleCheck(el) { el.classList.toggle('checked'); }
+
+// ══════════ 儲存 + AI 分析 ══════════
+function toggleHoldMode(val) {
+  const notice = document.getElementById('hold-notice');
+  const altField = document.getElementById('alternatives-field');
+  notice.style.display = val === 'hold' ? 'block' : 'none';
+  altField.style.display = val === 'hold' ? 'block' : 'none';
+}
+
+async function saveEntry() {
+  const date = document.getElementById('trade-date').value;
+  const stock = document.getElementById('trade-stock').value;
+  const action = document.getElementById('trade-action').value;
+  const price = document.getElementById('trade-price').value;
+  const qty = document.getElementById('trade-qty').value;
+  const reason = document.getElementById('reason').value;
+  const exitPSel = document.getElementById('exit-profit').value;
+  const exitLSel = document.getElementById('exit-loss').value;
+  const exitP = exitPSel === 'custom' ? document.getElementById('exit-profit-custom').value : exitPSel;
+  const exitL = exitLSel === 'custom' ? document.getElementById('exit-loss-custom').value : exitLSel;
+  const hold = document.getElementById('hold-period').value;
+  const notes = document.getElementById('notes').value;
+  const alternatives = document.getElementById('alternatives').value;
+  const checkedCount = document.querySelectorAll('#checklist .check-row.checked').length;
+
+  if (!stock || !price || !qty || !reason) {
+    alert('請填寫標的、價格、數量和進場理由'); return;
+  }
+
+  const entry = {
+    id: Date.now(),
+    date, stock, action, price: parseFloat(price), qty: parseInt(qty), alternatives,
+    amount: parseFloat(price) * parseInt(qty),
+    reason, exitP, exitL, hold, notes,
+    emotion: selectedEmotion, score: selectedScore,
+    checkedCount, aiAnalysis: null,
+    createdAt: new Date().toISOString()
+  };
+
+  // 顯示 AI 分析區塊
+  const aiPanel = document.getElementById('ai-panel');
+  const aiLoading = document.getElementById('ai-loading');
+  const aiResult = document.getElementById('ai-result');
+  aiPanel.classList.add('visible');
+  aiLoading.style.display = 'flex';
+  aiResult.style.display = 'none';
+
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true;
+  btn.textContent = '分析中...';
+
+  // 呼叫 Claude API
+  try {
+    const analysis = await analyzeWithClaude(entry);
+    entry.aiAnalysis = analysis;
+    aiLoading.style.display = 'none';
+    aiResult.style.display = 'block';
+    aiResult.innerHTML = formatAIResponse(analysis);
+  } catch(e) {
+    aiLoading.style.display = 'none';
+    aiResult.style.display = 'block';
+    aiResult.textContent = '⚠ API 連線失敗，記錄已儲存但無法取得分析。\n錯誤：' + e.message;
+  }
+
+  // 儲存到 localStorage
+  const entries = loadEntries();
+  entries.unshift(entry);
+  saveEntries(entries);
+
+  btn.disabled = false;
+  btn.textContent = '儲存並請 Claude 分析這筆交易';
+
+  // 重設表單
+  resetForm();
+}
+
+// ══════════ Claude API ══════════
+async function analyzeWithClaude(entry) {
+  const prompt = `你是一位嚴謹的投資紀律教練，正在審查一筆台股交易記錄。
+
+【投資策略規則】
+- 00631L（元大台灣50正2）：停損-15%（約$30.1），停利+20%（約$42.6），持有上限6-12個月，波段操作，不定期定額，加碼需有明確訊號
+- 00985A（野村台灣50）：每月定額$4,000，不設停利，台灣結構性衰退才停止，不因單次大跌停止
+- 2330（台積電）：持有10-20年，加碼區間≤$2,200，分批計畫$2,200/$2,000/$1,800各1股，基本面改變才賣
+- 核心原則：進場前必須有明確理由、出場條件、持有時間；情緒交易需暫停24小時
+
+【本筆交易資料】
+- 日期：${entry.date}
+- 標的：${entry.stock}
+- 動作：${ACTION_MAP[entry.action] || entry.action}
+- 成交價：$${entry.price}
+- 數量：${entry.qty}股（金額：$${entry.amount.toFixed(0)}）
+- 進場理由：${entry.reason}
+- 停利目標：${entry.exitP || '未設定'}
+- 停損點：${entry.exitL || '未設定'}
+- 預期持有：${HOLD_MAP[entry.hold] || entry.hold || '未設定'}
+- 情緒狀態：${entry.emotion || '未填寫'}
+- 決策評分：${entry.score || '未評分'}/5
+- 進場前確認：${entry.checkedCount}/5項
+- 備註：${entry.notes || '無'}
+${entry.action === 'hold' ? `- 考慮過的選項：${entry.alternatives || '未填寫'}` : ''}
+
+請用繁體中文，簡潔地給出：
+1. 【規則符合度】這筆交易符合/部分符合/不符合策略規則，說明原因（2-3句）
+2. 【風險提醒】如有潛在風險或規則邊界問題，指出來（1-2句，無問題可省略）
+3. 【一句話建議】給這筆交易一句具體的後續行動建議
+
+格式要精簡，不要超過150字。`;
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const data = await response.json();
+  return data.content?.[0]?.text || '無法取得分析結果';
+}
+
+function formatAIResponse(text) {
+  // 簡單格式化，保留段落
+  return text.replace(/【(.+?)】/g, '<strong style="color:var(--purple)">【$1】</strong>');
+}
+
+// ══════════ 渲染歷史 ══════════
+function renderHistory() {
+  const entries = loadEntries();
+  const filterStock = document.getElementById('filter-stock').value;
+  const filterAction = document.getElementById('filter-action').value;
+
+  const filtered = entries.filter(e => {
+    if (filterStock && e.stock !== filterStock) return false;
+    if (filterAction && e.action !== filterAction) return false;
+    return true;
+  });
+
+  document.getElementById('history-count').textContent = `共 ${filtered.length} 筆`;
+
+  const list = document.getElementById('history-list');
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="empty-state">尚無交易記錄<br><span style="font-size:10px;">在「新增記錄」分頁儲存第一筆交易</span></div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(e => {
+    const dots = Array.from({length:5}, (_,i) =>
+      `<div class="score-dot ${i < e.score ? 'filled' : ''}"></div>`
+    ).join('');
+
+    const isWarnEmotion = WARN_EMOTIONS.includes(e.emotion);
+
+    return `
+    <div class="journal-entry ${e.aiAnalysis ? 'has-ai' : ''}">
+      <button class="entry-delete" onclick="deleteEntry(${e.id})" title="刪除這筆記錄">✕</button>
+      <div class="entry-header">
+        <div class="entry-date">${e.date.replace(/-/g,'/')}</div>
+        <div class="entry-stock">${e.stock}</div>
+        <div class="entry-action ${ACTION_CLASS[e.action] || 'buy'}">${ACTION_MAP[e.action] || e.action}</div>
+        <div class="entry-pnl" style="color:var(--dim)">${e.action === 'hold' ? '未成交' : '持倉中'}</div>
+      </div>
+      <div class="entry-body">
+        <div><span class="entry-field">成交價：</span><span class="entry-val">$${e.price}</span></div>
+        <div><span class="entry-field">數量：</span><span class="entry-val">${e.qty}股</span></div>
+        <div><span class="entry-field">停損：</span><span class="entry-val">${e.exitL || '未設定'}</span></div>
+        <div><span class="entry-field">停利：</span><span class="entry-val">${e.exitP || '未設定'}</span></div>
+        <div><span class="entry-field">持有期限：</span><span class="entry-val">${HOLD_MAP[e.hold] || e.hold || '未設定'}</span></div>
+        <div><span class="entry-field">決策評分：</span><div class="entry-score">${dots}</div></div>
+        ${e.emotion ? `<div><span class="entry-field">情緒：</span><span class="entry-val" style="color:${isWarnEmotion ? 'var(--yellow)' : 'var(--text)'}">${e.emotion}</span></div>` : ''}
+        <div><span class="entry-field">確認清單：</span><span class="entry-val">${e.checkedCount}/5</span></div>
+      </div>
+      <div class="entry-box">
+        <div class="entry-box-label">進場理由</div>${e.reason}
+      </div>
+      ${e.alternatives ? `<div class="entry-box" style="border-left:2px solid var(--purple);padding-left:10px;"><div class="entry-box-label" style="color:var(--purple)">考慮過的選項</div>${e.alternatives}</div>` : ''}
+      ${e.notes ? `<div class="entry-box"><div class="entry-box-label">備註</div>${e.notes}</div>` : ''}
+      ${e.aiAnalysis ? `<div class="entry-ai"><div class="entry-ai-label">✦ Claude 分析</div>${formatAIResponse(e.aiAnalysis)}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function deleteEntry(id) {
+  if (!confirm('確定刪除這筆記錄？')) return;
+  const entries = loadEntries().filter(e => e.id !== id);
+  saveEntries(entries);
+  renderHistory();
+}
+
+function confirmClearAll() {
+  if (!confirm('確定清除全部記錄？此操作無法復原。')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  updateStorageStatus();
+  renderHistory();
+}
+
+// ══════════ 統計 ══════════
+function renderStats() {
+  const entries = loadEntries();
+  const n = entries.length;
+
+  document.getElementById('stat-total').textContent = n;
+  document.getElementById('stat-ai').textContent = entries.filter(e => e.aiAnalysis).length;
+  document.getElementById('stat-emotion').textContent = entries.filter(e => WARN_EMOTIONS.includes(e.emotion)).length;
+
+  const scored = entries.filter(e => e.score > 0);
+  const avgScore = scored.length ? (scored.reduce((s,e) => s+e.score, 0) / scored.length).toFixed(1) : '—';
+  document.getElementById('stat-score').textContent = scored.length ? avgScore + '/5' : '—';
+
+  function setPct(barId, pctId, pct) {
+    const color = pct >= 80 ? 'g' : pct >= 50 ? 'y' : 'r';
+    const bar = document.getElementById(barId);
+    bar.style.width = pct + '%';
+    bar.className = `habit-fill ${barId === 'habit-ai' ? '' : color}`;
+    if (barId === 'habit-ai') bar.style.background = 'var(--purple)';
+    const pctEl = document.getElementById(pctId);
+    pctEl.textContent = n ? pct + '%' : '—';
+    pctEl.style.color = n ? (pct >= 80 ? 'var(--green)' : pct >= 50 ? 'var(--yellow)' : 'var(--red)') : 'var(--dim)';
+  }
+
+  if (n === 0) {
+    ['habit-reason','habit-exit','habit-calm','habit-checklist','habit-ai'].forEach((id,i) => {
+      document.getElementById(id).style.width = '0%';
+      document.getElementById(['habit-reason-pct','habit-exit-pct','habit-calm-pct','habit-checklist-pct','habit-ai-pct'][i]).textContent = '—';
+    });
+    return;
+  }
+
+  setPct('habit-reason', 'habit-reason-pct', Math.round(entries.filter(e => e.reason && e.reason.length > 10).length / n * 100));
+  setPct('habit-exit', 'habit-exit-pct', Math.round(entries.filter(e => e.exitP || e.exitL).length / n * 100));
+  setPct('habit-calm', 'habit-calm-pct', Math.round(entries.filter(e => !WARN_EMOTIONS.includes(e.emotion)).length / n * 100));
+  setPct('habit-checklist', 'habit-checklist-pct', Math.round(entries.filter(e => e.checkedCount === 5).length / n * 100));
+  setPct('habit-ai', 'habit-ai-pct', Math.round(entries.filter(e => e.aiAnalysis).length / n * 100));
+}
+
+function resetForm() {
+  document.getElementById('reason').value = '';
+  document.getElementById('exit-profit').value = '';
+  document.getElementById('exit-loss').value = '';
+  document.getElementById('notes').value = '';
+  document.getElementById('trade-price').value = '';
+  document.getElementById('trade-qty').value = '';
+  document.getElementById('trade-amount').value = '';
+  document.getElementById('exit-profit').value = '';
+  document.getElementById('exit-loss').value = '';
+  document.getElementById('exit-profit-custom').style.display = 'none';
+  document.getElementById('exit-loss-custom').style.display = 'none';
+  document.getElementById('exit-profit-custom').value = '';
+  document.getElementById('exit-loss-custom').value = '';
+  document.getElementById('trade-stock').value = '';
+  document.getElementById('alternatives').value = '';
+  document.getElementById('hold-notice').style.display = 'none';
+  document.getElementById('alternatives-field').style.display = 'none';
+  document.getElementById('hold-period').value = '';
+  document.querySelectorAll('.emotion-btn').forEach(b => b.classList.remove('selected'));
+  document.querySelectorAll('.score-btn').forEach(b => b.classList.remove('selected'));
+  document.querySelectorAll('.check-row').forEach(r => r.classList.remove('checked'));
+  selectedEmotion = ''; selectedScore = 0;
+}
+
+// ══════════ 匯出 / 匯入 ══════════
+function exportJSON() {
+  const entries = loadEntries();
+  if (entries.length === 0) { showToast('⚠ 目前沒有記錄可匯出'); return; }
+  const json = JSON.stringify(entries, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const date = new Date().toISOString().split('T')[0];
+  a.href = url;
+  a.download = `trading_journal_backup_${date}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(`✓ 已匯出 ${entries.length} 筆記錄`);
+}
+
+function toggleImport() {
+  const area = document.getElementById('import-area');
+  const isVisible = area.style.display === 'block';
+  area.style.display = isVisible ? 'none' : 'block';
+  if (!isVisible) document.getElementById('import-text').focus();
+}
+
+function importJSON() {
+  const text = document.getElementById('import-text').value.trim();
+  if (!text) { showToast('⚠ 請貼上 JSON 資料'); return; }
+  let imported;
+  try {
+    imported = JSON.parse(text);
+    if (!Array.isArray(imported)) throw new Error('格式錯誤');
+  } catch(e) {
+    showToast('⚠ JSON 格式無效，請確認備份檔案');
+    return;
+  }
+  const existing = loadEntries();
+  const existingIds = new Set(existing.map(e => e.id));
+  const newEntries = imported.filter(e => e.id && !existingIds.has(e.id));
+  if (newEntries.length === 0) {
+    showToast('⚠ 沒有新記錄（全部已存在或格式有誤）');
+    return;
+  }
+  const merged = [...newEntries, ...existing].sort((a, b) => b.id - a.id);
+  saveEntries(merged);
+  document.getElementById('import-text').value = '';
+  document.getElementById('import-area').style.display = 'none';
+  renderHistory();
+  showToast(`✓ 成功匯入 ${newEntries.length} 筆記錄`);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ══════════ 初始化 ══════════
+updateStorageStatus();
+</script>
+</body>
+</html>
