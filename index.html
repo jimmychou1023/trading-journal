@@ -147,9 +147,58 @@ input[readonly]{color:var(--dim);}
 
 .empty-state{text-align:center;padding:40px 20px;color:var(--dim);font-size:12px;}
 
+/* ── PORTFOLIO ── */
+.portfolio-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
+.portfolio-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px;}
+.portfolio-card-label{font-size:9px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+.portfolio-card-val{font-family:'Share Tech Mono',monospace;font-size:18px;font-weight:700;color:var(--bright);}
+.portfolio-card-sub{font-size:10px;margin-top:3px;}
+.portfolio-card-sub.g{color:var(--green);}
+.portfolio-card-sub.r{color:var(--red);}
+.portfolio-card-sub.dim{color:var(--dim);}
+
+.holding-row{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:10px;}
+.holding-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.holding-code{font-family:'Share Tech Mono',monospace;font-size:15px;font-weight:700;color:var(--bright);}
+.holding-name{font-size:11px;color:var(--dim);}
+.holding-type{margin-left:auto;font-size:9px;font-weight:700;padding:2px 8px;border-radius:3px;letter-spacing:1px;}
+.holding-type.tw{background:rgba(74,144,217,.15);color:var(--blue);}
+.holding-type.us{background:rgba(61,184,122,.15);color:var(--green);}
+.holding-type.bond{background:rgba(232,184,75,.15);color:var(--yellow);}
+.holding-type.fund{background:rgba(155,114,207,.15);color:var(--purple);}
+.holding-type.cash{background:rgba(74,90,112,.3);color:var(--dim);}
+.holding-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;}
+.holding-field{display:flex;flex-direction:column;gap:3px;}
+.holding-field-label{font-size:9px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;}
+.holding-field-val{font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--text);}
+.holding-pnl{display:flex;align-items:center;gap:8px;padding-top:10px;border-top:1px solid var(--border);}
+.holding-pnl-label{font-size:10px;color:var(--dim);}
+.holding-pnl-val{font-family:'Share Tech Mono',monospace;font-size:14px;font-weight:700;}
+.holding-pnl-val.g{color:var(--green);}
+.holding-pnl-val.r{color:var(--red);}
+.holding-pnl-pct{font-size:11px;padding:2px 8px;border-radius:3px;}
+.holding-pnl-pct.g{background:rgba(61,184,122,.15);color:var(--green);}
+.holding-pnl-pct.r{background:rgba(224,82,82,.15);color:var(--red);}
+.holding-price-input{display:flex;align-items:center;gap:8px;margin-top:8px;}
+.holding-price-input input{flex:1;font-family:'Share Tech Mono',monospace;}
+.holding-price-input label{font-size:10px;color:var(--dim);white-space:nowrap;text-transform:none;letter-spacing:0;}
+.btn-update{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:4px;padding:5px 12px;font-size:11px;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.btn-update:hover{border-color:var(--blue);color:var(--blue);}
+.alloc-bar{height:8px;border-radius:4px;background:var(--bg3);overflow:hidden;display:flex;margin-top:8px;}
+.alloc-seg{height:100%;transition:width .5s;}
+.alloc-legend{display:flex;gap:12px;margin-top:6px;flex-wrap:wrap;}
+.alloc-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--dim);}
+.alloc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.portfolio-section-title{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--dim);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.portfolio-section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.update-all-btn{background:var(--blue);color:#fff;border:none;border-radius:5px;padding:8px 20px;font-size:12px;font-weight:700;cursor:pointer;margin-bottom:16px;transition:background .2s;}
+.update-all-btn:hover{background:#3a7bc8;}
+
 @media(max-width:600px){
   .form-grid,.form-grid3,.entry-body,.rule-items,.stat-grid{grid-template-columns:1fr;}
-  .stat-grid{grid-template-columns:1fr 1fr;}
+  .stat-grid{grid-template-columns:1fr 1fr 1fr;}
+  .portfolio-summary{grid-template-columns:1fr 1fr;}
+  .holding-grid{grid-template-columns:1fr 1fr;}
   .history-toolbar{flex-wrap:wrap;}
 }
 </style>
@@ -169,6 +218,7 @@ input[readonly]{color:var(--dim);}
   <div class="tab active" onclick="switchTab('new')">＋ 新增記錄</div>
   <div class="tab" onclick="switchTab('history')">歷史記錄</div>
   <div class="tab" onclick="switchTab('stats')">統計分析</div>
+  <div class="tab" onclick="switchTab('portfolio')">資產總覽</div>
 </div>
 
 <!-- ══════════ TAB 1: 新增 ══════════ -->
@@ -430,6 +480,188 @@ input[readonly]{color:var(--dim);}
   <div style="font-size:10px;color:var(--dim);margin-top:8px;">* 統計數據依實際記錄即時計算</div>
 </div>
 
+<!-- ══════════ TAB 4: 資產總覽 ══════════ -->
+<div id="tab-portfolio" class="tab-content">
+
+  <!-- 總資產摘要 -->
+  <div class="portfolio-summary">
+    <div class="portfolio-card">
+      <div class="portfolio-card-label">總資產（市值）</div>
+      <div class="portfolio-card-val" id="p-total-val">—</div>
+      <div class="portfolio-card-sub dim" id="p-total-cost">成本 —</div>
+    </div>
+    <div class="portfolio-card">
+      <div class="portfolio-card-label">總損益</div>
+      <div class="portfolio-card-val" id="p-total-pnl">—</div>
+      <div class="portfolio-card-sub" id="p-total-pct">—</div>
+    </div>
+    <div class="portfolio-card">
+      <div class="portfolio-card-label">上次更新</div>
+      <div class="portfolio-card-val" style="font-size:13px;" id="p-last-update">—</div>
+      <div class="portfolio-card-sub dim">手動更新市價</div>
+    </div>
+  </div>
+
+  <!-- 資產配置比例 -->
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:16px;">
+    <div class="portfolio-section-title">資產配置</div>
+    <div class="alloc-bar" id="alloc-bar"></div>
+    <div class="alloc-legend" id="alloc-legend"></div>
+  </div>
+
+  <!-- 各標的持倉 -->
+  <div class="portfolio-section-title">各標的持倉</div>
+  <button class="update-all-btn" onclick="savePortfolio()">💾 儲存市價更新</button>
+
+  <!-- 00985A -->
+  <div class="holding-row">
+    <div class="holding-header">
+      <div>
+        <div class="holding-code">00985A</div>
+        <div class="holding-name">野村台灣50</div>
+      </div>
+      <div class="holding-type tw">台股 ETF</div>
+    </div>
+    <div class="holding-grid">
+      <div class="holding-field"><div class="holding-field-label">持股數</div><div class="holding-field-val" id="h-00985A-qty">1,182 股</div></div>
+      <div class="holding-field"><div class="holding-field-label">成本均價</div><div class="holding-field-val" id="h-00985A-cost">$17.26</div></div>
+      <div class="holding-field"><div class="holding-field-label">總成本</div><div class="holding-field-val" id="h-00985A-total-cost">$20,401</div></div>
+    </div>
+    <div class="holding-price-input">
+      <label>今日市價</label>
+      <input type="number" id="p-00985A-price" placeholder="輸入市價">
+      <div class="holding-pnl-val g" id="h-00985A-pnl" style="font-size:12px;">—</div>
+    </div>
+  </div>
+
+  <!-- 2330 -->
+  <div class="holding-row">
+    <div class="holding-header">
+      <div>
+        <div class="holding-code">2330</div>
+        <div class="holding-name">台積電</div>
+      </div>
+      <div class="holding-type tw">台股 個股</div>
+    </div>
+    <div class="holding-grid">
+      <div class="holding-field"><div class="holding-field-label">持股數</div><div class="holding-field-val">6 股</div></div>
+      <div class="holding-field"><div class="holding-field-label">成本均價</div><div class="holding-field-val">$1,900</div></div>
+      <div class="holding-field"><div class="holding-field-label">總成本</div><div class="holding-field-val">$11,400</div></div>
+    </div>
+    <div class="holding-price-input">
+      <label>今日市價</label>
+      <input type="number" id="p-2330-price" placeholder="輸入市價">
+      <div class="holding-pnl-val g" id="h-2330-pnl" style="font-size:12px;">—</div>
+    </div>
+  </div>
+
+  <!-- 00631L -->
+  <div class="holding-row">
+    <div class="holding-header">
+      <div>
+        <div class="holding-code">00631L</div>
+        <div class="holding-name">元大台灣50正2</div>
+      </div>
+      <div class="holding-type tw">台股 槓桿ETF</div>
+    </div>
+    <div class="holding-grid">
+      <div class="holding-field"><div class="holding-field-label">持股數</div><div class="holding-field-val">1,000 股</div></div>
+      <div class="holding-field"><div class="holding-field-label">成本均價</div><div class="holding-field-val">$35.46</div></div>
+      <div class="holding-field"><div class="holding-field-label">總成本</div><div class="holding-field-val">$35,460</div></div>
+    </div>
+    <div class="holding-price-input">
+      <label>今日市價</label>
+      <input type="number" id="p-00631L-price" placeholder="輸入市價">
+      <div class="holding-pnl-val" id="h-00631L-pnl" style="font-size:12px;">—</div>
+    </div>
+  </div>
+
+  <!-- 00646 -->
+  <div class="holding-row">
+    <div class="holding-header">
+      <div>
+        <div class="holding-code">00646</div>
+        <div class="holding-name">元大S&P500</div>
+      </div>
+      <div class="holding-type us">美股 ETF</div>
+    </div>
+    <div class="holding-grid">
+      <div class="holding-field"><div class="holding-field-label">持股數</div><div class="holding-field-val" id="h-00646-qty">136 股</div></div>
+      <div class="holding-field"><div class="holding-field-label">成本均價</div><div class="holding-field-val" id="h-00646-cost">~$73</div></div>
+      <div class="holding-field"><div class="holding-field-label">總成本</div><div class="holding-field-val" id="h-00646-total-cost">~$9,928</div></div>
+    </div>
+    <div class="holding-price-input">
+      <label>今日市價</label>
+      <input type="number" id="p-00646-price" placeholder="輸入市價">
+      <div class="holding-pnl-val" id="h-00646-pnl" style="font-size:12px;">—</div>
+    </div>
+  </div>
+
+  <!-- 00990B -->
+  <div class="holding-row">
+    <div class="holding-header">
+      <div>
+        <div class="holding-code">00990B</div>
+        <div class="holding-name">國泰收益非投等債</div>
+      </div>
+      <div class="holding-type bond">債券 ETF</div>
+    </div>
+    <div class="holding-grid">
+      <div class="holding-field"><div class="holding-field-label">持股數</div><div class="holding-field-val">1,000 股</div></div>
+      <div class="holding-field"><div class="holding-field-label">成本均價</div><div class="holding-field-val">$10.00</div></div>
+      <div class="holding-field"><div class="holding-field-label">總成本</div><div class="holding-field-val">$10,000</div></div>
+    </div>
+    <div class="holding-price-input">
+      <label>今日市價</label>
+      <input type="number" id="p-00990B-price" placeholder="6/15後輸入">
+      <div class="holding-pnl-val" id="h-00990B-pnl" style="font-size:12px;">—</div>
+    </div>
+  </div>
+
+  <!-- 小龍基金 -->
+  <div class="holding-row">
+    <div class="holding-header">
+      <div>
+        <div class="holding-code">小龍基金</div>
+        <div class="holding-name">國泰小龍基金（新台幣）</div>
+      </div>
+      <div class="holding-type fund">主動基金</div>
+    </div>
+    <div class="holding-grid">
+      <div class="holding-field"><div class="holding-field-label">每月定額</div><div class="holding-field-val">$2,000</div></div>
+      <div class="holding-field"><div class="holding-field-label">成本均價</div><div class="holding-field-val" id="h-dragon-cost">—</div></div>
+      <div class="holding-field"><div class="holding-field-label">總成本</div><div class="holding-field-val" id="h-dragon-total">—</div></div>
+    </div>
+    <div class="holding-price-input">
+      <label>最新淨值</label>
+      <input type="number" id="p-dragon-price" placeholder="輸入最新淨值">
+      <div class="holding-pnl-val" id="h-dragon-pnl" style="font-size:12px;">—</div>
+    </div>
+  </div>
+
+  <!-- 現金備用 -->
+  <div class="holding-row">
+    <div class="holding-header">
+      <div>
+        <div class="holding-code">現金備用</div>
+        <div class="holding-name">等待進場機會</div>
+      </div>
+      <div class="holding-type cash">現金</div>
+    </div>
+    <div class="holding-grid">
+      <div class="holding-field"><div class="holding-field-label">用途</div><div class="holding-field-val" style="font-size:11px;">2330加碼 / 00631L進場</div></div>
+      <div class="holding-field"><div class="holding-field-label">目標金額</div><div class="holding-field-val">$10,000</div></div>
+      <div class="holding-field"><div class="holding-field-label">目前金額</div><div class="holding-field-val" id="h-cash-val">—</div></div>
+    </div>
+    <div class="holding-price-input">
+      <label>現金金額</label>
+      <input type="number" id="p-cash-amount" placeholder="輸入現金金額">
+      <div style="font-size:10px;color:var(--dim);">手動更新</div>
+    </div>
+  </div>
+
+</div>
+
 <script>
 // ══════════ 狀態 ══════════
 const STORAGE_KEY = 'trading_journal_v2';
@@ -469,12 +701,13 @@ function updateStorageStatus() {
 // ══════════ Tab ══════════
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach((t,i) => {
-    t.classList.toggle('active', ['new','history','stats'][i] === name);
+    t.classList.toggle('active', ['new','history','stats','portfolio'][i] === name);
   });
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
   if (name === 'history') renderHistory();
   if (name === 'stats') renderStats();
+  if (name === 'portfolio') loadPortfolio();
 }
 
 // ══════════ 表單互動 ══════════
@@ -826,6 +1059,133 @@ function showToast(msg) {
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2500);
 }
+
+// ══════════ 資產總覽 ══════════
+const PORTFOLIO_KEY = 'portfolio_prices_v1';
+
+const HOLDINGS = [
+  { id:'00985A', qty:1182, cost:17.26, priceId:'p-00985A-price', pnlId:'h-00985A-pnl' },
+  { id:'2330',   qty:6,    cost:1900,  priceId:'p-2330-price',   pnlId:'h-2330-pnl'   },
+  { id:'00631L', qty:1000, cost:35.46, priceId:'p-00631L-price', pnlId:'h-00631L-pnl' },
+  { id:'00646',  qty:136,  cost:73,    priceId:'p-00646-price',  pnlId:'h-00646-pnl'  },
+  { id:'00990B', qty:1000, cost:10,    priceId:'p-00990B-price', pnlId:'h-00990B-pnl' },
+  { id:'dragon', qty:0,    cost:0,     priceId:'p-dragon-price', pnlId:'h-dragon-pnl' },
+];
+
+const ALLOC_COLORS = {
+  '00985A':'#4a90d9','2330':'#2a70b9','00631L':'#1a5090',
+  '00646':'#3db87a','00990B':'#e8b84b','dragon':'#9b72cf','cash':'#4a5568'
+};
+
+const ALLOC_LABELS = {
+  '00985A':'00985A 台股','2330':'2330 台積電','00631L':'00631L 槓桿',
+  '00646':'00646 美股','00990B':'00990B 債券','dragon':'小龍基金','cash':'現金備用'
+};
+
+function loadPortfolio() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(PORTFOLIO_KEY) || '{}');
+    HOLDINGS.forEach(h => {
+      if (saved[h.id]) {
+        document.getElementById(h.priceId).value = saved[h.id];
+      }
+    });
+    if (saved.cash) document.getElementById('p-cash-amount').value = saved.cash;
+    if (saved.dragonQty) document.getElementById('h-dragon-qty') && (document.getElementById('h-dragon-cost').textContent = '$' + saved.dragonCost);
+    if (saved.lastUpdate) document.getElementById('p-last-update').textContent = saved.lastUpdate;
+    calcPortfolio(saved);
+  } catch(e) {}
+}
+
+function savePortfolio() {
+  const data = { lastUpdate: new Date().toLocaleDateString('zh-TW') };
+  HOLDINGS.forEach(h => {
+    const val = document.getElementById(h.priceId).value;
+    if (val) data[h.id] = parseFloat(val);
+  });
+  const cash = document.getElementById('p-cash-amount').value;
+  if (cash) data.cash = parseFloat(cash);
+  localStorage.setItem(PORTFOLIO_KEY, JSON.stringify(data));
+  calcPortfolio(data);
+  showToast('✓ 市價已更新');
+}
+
+function calcPortfolio(data) {
+  let totalCost = 0, totalVal = 0;
+  const allocData = {};
+
+  HOLDINGS.forEach(h => {
+    const price = data[h.id];
+    if (!price || h.qty === 0) return;
+    const cost = h.cost * h.qty;
+    const val = price * h.qty;
+    const pnl = val - cost;
+    const pct = ((pnl / cost) * 100).toFixed(2);
+    totalCost += cost;
+    totalVal += val;
+    allocData[h.id] = val;
+
+    const pnlEl = document.getElementById(h.pnlId);
+    if (pnlEl) {
+      const isPos = pnl >= 0;
+      pnlEl.className = 'holding-pnl-val ' + (isPos ? 'g' : 'r');
+      pnlEl.textContent = (isPos ? '+' : '') + Math.round(pnl).toLocaleString() + ' (' + (isPos ? '+' : '') + pct + '%)';
+    }
+  });
+
+  // cash
+  const cashVal = data.cash || 0;
+  if (cashVal) {
+    totalVal += cashVal;
+    allocData.cash = cashVal;
+    document.getElementById('h-cash-val').textContent = '$' + cashVal.toLocaleString();
+  }
+
+  // summary
+  if (totalVal > 0) {
+    document.getElementById('p-total-val').textContent = '$' + Math.round(totalVal).toLocaleString();
+    document.getElementById('p-total-cost').textContent = '成本 $' + Math.round(totalCost).toLocaleString();
+    const totalPnl = totalVal - totalCost;
+    const totalPct = totalCost > 0 ? ((totalPnl / totalCost) * 100).toFixed(2) : 0;
+    const pnlEl = document.getElementById('p-total-pnl');
+    pnlEl.textContent = (totalPnl >= 0 ? '+' : '') + '$' + Math.round(Math.abs(totalPnl)).toLocaleString();
+    pnlEl.style.color = totalPnl >= 0 ? 'var(--green)' : 'var(--red)';
+    const pctEl = document.getElementById('p-total-pct');
+    pctEl.textContent = (totalPnl >= 0 ? '+' : '') + totalPct + '%';
+    pctEl.className = 'portfolio-card-sub ' + (totalPnl >= 0 ? 'g' : 'r');
+  }
+
+  // alloc bar
+  const bar = document.getElementById('alloc-bar');
+  const legend = document.getElementById('alloc-legend');
+  if (totalVal > 0 && bar) {
+    bar.innerHTML = Object.entries(allocData).map(([k,v]) =>
+      `<div class="alloc-seg" style="width:${(v/totalVal*100).toFixed(1)}%;background:${ALLOC_COLORS[k]||'#555'}"></div>`
+    ).join('');
+    legend.innerHTML = Object.entries(allocData).map(([k,v]) =>
+      `<div class="alloc-item"><div class="alloc-dot" style="background:${ALLOC_COLORS[k]||'#555'}"></div>${ALLOC_LABELS[k]||k} ${(v/totalVal*100).toFixed(1)}%</div>`
+    ).join('');
+  }
+}
+
+// add price input listeners for live calc
+HOLDINGS.forEach(h => {
+  const el = document.getElementById(h.priceId);
+  if (el) el.addEventListener('input', () => {
+    const tmp = {};
+    HOLDINGS.forEach(hh => { const v = document.getElementById(hh.priceId).value; if(v) tmp[hh.id]=parseFloat(v); });
+    const cash = document.getElementById('p-cash-amount').value;
+    if (cash) tmp.cash = parseFloat(cash);
+    calcPortfolio(tmp);
+  });
+});
+document.getElementById('p-cash-amount').addEventListener('input', () => {
+  const tmp = {};
+  HOLDINGS.forEach(hh => { const v = document.getElementById(hh.priceId).value; if(v) tmp[hh.id]=parseFloat(v); });
+  const cash = document.getElementById('p-cash-amount').value;
+  if (cash) tmp.cash = parseFloat(cash);
+  calcPortfolio(tmp);
+});
 
 // ══════════ 初始化 ══════════
 updateStorageStatus();
