@@ -230,7 +230,7 @@ input[readonly]{color:var(--dim);}
     <div class="rule-items">
       <div class="rule-item"><div class="rule-item-title">00985A</div>每月定額$4,000 / 不設停利 / 結構轉空才停止</div>
       <div class="rule-item"><div class="rule-item-title">2330</div>≤$2,200分批加碼 / 基本面改變才賣 / 持有10-20年</div>
-      <div class="rule-item"><div class="rule-item-title">00631L</div>停損-15% / 停利+20% / 持有上限12個月</div>
+      <div class="rule-item"><div class="rule-item-title">00631L</div>停損-25% / 移動停利+30% / 趨勢決定持有期</div>
       <div class="rule-item"><div class="rule-item-title">00646</div>每月定額$4,000 / 不設停利 / 長期持有</div>
       <div class="rule-item"><div class="rule-item-title">00990B</div>長期持有 / 月配息 / 債券防禦部位</div>
       <div class="rule-item"><div class="rule-item-title">小龍基金</div>每月定額$2,000 / 觀察3年 / 對比00985A績效</div>
@@ -490,6 +490,14 @@ input[readonly]{color:var(--dim);}
 <!-- ══════════ TAB 4: 資產總覽 ══════════ -->
 <div id="tab-portfolio" class="tab-content">
 
+  <!-- 每月定額提醒 -->
+  <div style="background:rgba(74,144,217,.06);border:1px solid rgba(74,144,217,.2);border-radius:6px;padding:12px 14px;margin-bottom:16px;font-size:11px;color:var(--text);line-height:1.8;">
+    <span style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--blue);">📅 每月資金配置</span><br>
+    每月撥入證券戶 <strong>$20,000</strong><br>
+    00985A $4,000 ＋ 00646 $4,000 ＋ 小龍基金 $2,000 ＝ 定額 $10,000<br>
+    剩餘 <strong>$10,000 自動累積為備用金</strong>，等 2330 $2,200 或 00631L 進場訊號觸發
+  </div>
+
   <!-- 總資產摘要 -->
   <div class="portfolio-summary">
     <div class="portfolio-card">
@@ -614,9 +622,9 @@ input[readonly]{color:var(--dim);}
       <div class="holding-type bond">債券 ETF</div>
     </div>
     <div class="holding-grid">
-      <div class="holding-field"><div class="holding-field-label">持股數</div><div class="holding-field-val">1,000 股</div></div>
-      <div class="holding-field"><div class="holding-field-label">成本均價</div><div class="holding-field-val">$10.00</div></div>
-      <div class="holding-field"><div class="holding-field-label">總成本</div><div class="holding-field-val">$10,000</div></div>
+      <div class="holding-field"><div class="holding-field-label">持股數</div><div class="holding-field-val">— 股（6/15申購）</div></div>
+      <div class="holding-field"><div class="holding-field-label">成本均價</div><div class="holding-field-val">$10.00（發行價）</div></div>
+      <div class="holding-field"><div class="holding-field-label">總成本</div><div class="holding-field-val">$10,000（待確認）</div></div>
     </div>
     <div class="holding-price-input">
       <label>今日市價</label>
@@ -635,9 +643,9 @@ input[readonly]{color:var(--dim);}
       <div class="holding-type fund">主動基金</div>
     </div>
     <div class="holding-grid">
-      <div class="holding-field"><div class="holding-field-label">每月定額</div><div class="holding-field-val">$2,000</div></div>
-      <div class="holding-field"><div class="holding-field-label">成本均價</div><div class="holding-field-val" id="h-dragon-cost">—</div></div>
-      <div class="holding-field"><div class="holding-field-label">總成本</div><div class="holding-field-val" id="h-dragon-total">—</div></div>
+      <div class="holding-field"><div class="holding-field-label">每月定額</div><div class="holding-field-val">$2,000（每月18日）</div></div>
+      <div class="holding-field"><div class="holding-field-label">首次扣款</div><div class="holding-field-val">2026/06/18</div></div>
+      <div class="holding-field"><div class="holding-field-label">累計投入</div><div class="holding-field-val" id="h-dragon-total">$0（本月起）</div></div>
     </div>
     <div class="holding-price-input">
       <label>最新淨值</label>
@@ -657,7 +665,7 @@ input[readonly]{color:var(--dim);}
     </div>
     <div class="holding-grid">
       <div class="holding-field"><div class="holding-field-label">用途</div><div class="holding-field-val" style="font-size:11px;">2330加碼 / 00631L進場</div></div>
-      <div class="holding-field"><div class="holding-field-label">目標金額</div><div class="holding-field-val">$10,000</div></div>
+      <div class="holding-field"><div class="holding-field-label">每月自動累積</div><div class="holding-field-val">$10,000/月</div></div>
       <div class="holding-field"><div class="holding-field-label">目前金額</div><div class="holding-field-val" id="h-cash-val">—</div></div>
     </div>
     <div class="holding-price-input">
@@ -1075,7 +1083,7 @@ const HOLDINGS = [
   { id:'2330',   qty:6,    cost:1900,  priceId:'p-2330-price',   pnlId:'h-2330-pnl'   },
   { id:'00631L', qty:1000, cost:35.46, priceId:'p-00631L-price', pnlId:'h-00631L-pnl' },
   { id:'00646',  qty:0,    cost:0,     priceId:'p-00646-price',  pnlId:'h-00646-pnl'  },
-  { id:'00990B', qty:1000, cost:10,    priceId:'p-00990B-price', pnlId:'h-00990B-pnl' },
+  { id:'00990B', qty:0,    cost:10,    priceId:'p-00990B-price', pnlId:'h-00990B-pnl' },
   { id:'dragon', qty:0,    cost:0,     priceId:'p-dragon-price', pnlId:'h-dragon-pnl' },
 ];
 
