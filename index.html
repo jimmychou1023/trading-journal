@@ -168,6 +168,7 @@ input[readonly]{color:var(--dim);}
 .holding-type.bond{background:rgba(232,184,75,.15);color:var(--yellow);}
 .holding-type.fund{background:rgba(155,114,207,.15);color:var(--purple);}
 .holding-type.cash{background:rgba(74,90,112,.3);color:var(--dim);}
+.holding-type.esop{background:rgba(232,184,75,.15);color:var(--yellow);}
 .holding-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;}
 .holding-field{display:flex;flex-direction:column;gap:3px;}
 .holding-field-label{font-size:9px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;}
@@ -229,8 +230,8 @@ input[readonly]{color:var(--dim);}
     <div class="rule-reminder-title">📋 規則速查</div>
     <div class="rule-items">
       <div class="rule-item"><div class="rule-item-title">00985A</div>每月定額$4,000 / 不設停利 / 結構轉空才停止</div>
-      <div class="rule-item"><div class="rule-item-title">2330</div>≤$2,200分批加碼 / 基本面改變才賣 / 持有10-20年</div>
-      <div class="rule-item"><div class="rule-item-title">00631L</div>停損-25% / 移動停利+30% / 趨勢決定持有期</div>
+      <div class="rule-item"><div class="rule-item-title">2330</div>跌幅-15%/-25%/-35%分批加碼（需基本面確認）/ 基本面改變才賣 / 持有10-20年</div>
+      <div class="rule-item"><div class="rule-item-title">00631L</div>趨勢停損（跌破季線+外資空單增加）/ 每10%評估動能 / 現階段練習部位勿加碼</div>
       <div class="rule-item"><div class="rule-item-title">00646</div>每月定額$4,000 / 不設停利 / 長期持有</div>
       <div class="rule-item"><div class="rule-item-title">00990B</div>長期持有 / 月配息 / 債券防禦部位</div>
       <div class="rule-item"><div class="rule-item-title">小龍基金</div>每月定額$2,000 / 觀察3年 / 對比00985A績效</div>
@@ -651,6 +652,30 @@ input[readonly]{color:var(--dim);}
       <label>最新淨值</label>
       <input type="number" id="p-dragon-price" placeholder="輸入最新淨值">
       <div class="holding-pnl-val" id="h-dragon-pnl" style="font-size:12px;">—</div>
+    </div>
+  </div>
+
+  <!-- 國泰金員工持股信託 -->
+  <div class="holding-row">
+    <div class="holding-header">
+      <div>
+        <div class="holding-code">國泰金 2882</div>
+        <div class="holding-name">員工持股信託</div>
+      </div>
+      <div class="holding-type esop">員工持股</div>
+    </div>
+    <div class="holding-grid">
+      <div class="holding-field"><div class="holding-field-label">每月提撥</div><div class="holding-field-val">公司 $1,000 ＋ 自提 $1,000</div></div>
+      <div class="holding-field"><div class="holding-field-label">持股數</div><div class="holding-field-val" id="h-esop-qty">—（信託累積中）</div></div>
+      <div class="holding-field"><div class="holding-field-label">累計投入</div><div class="holding-field-val" id="h-esop-total">—</div></div>
+    </div>
+    <div style="font-size:10px;color:var(--dim);margin-top:6px;padding:6px 0;border-top:1px solid var(--border);">
+      ⚠️ 注意：薪資、持股、券商均在國泰體系，存在集中風險。屬系統性風險，個別公司問題機率低。
+    </div>
+    <div class="holding-price-input">
+      <label>國泰金現價</label>
+      <input type="number" id="p-esop-price" placeholder="輸入國泰金股價">
+      <div class="holding-pnl-val" id="h-esop-pnl" style="font-size:12px;">—</div>
     </div>
   </div>
 
@@ -1085,16 +1110,17 @@ const HOLDINGS = [
   { id:'00646',  qty:0,    cost:0,     priceId:'p-00646-price',  pnlId:'h-00646-pnl'  },
   { id:'00990B', qty:0,    cost:10,    priceId:'p-00990B-price', pnlId:'h-00990B-pnl' },
   { id:'dragon', qty:0,    cost:0,     priceId:'p-dragon-price', pnlId:'h-dragon-pnl' },
+  { id:'esop',   qty:0,    cost:0,     priceId:'p-esop-price',   pnlId:'h-esop-pnl'   },
 ];
 
 const ALLOC_COLORS = {
   '00985A':'#4a90d9','2330':'#2a70b9','00631L':'#1a5090',
-  '00646':'#3db87a','00990B':'#e8b84b','dragon':'#9b72cf','cash':'#4a5568'
+  '00646':'#3db87a','00990B':'#e8b84b','dragon':'#9b72cf','cash':'#4a5568','esop':'#e8b84b'
 };
 
 const ALLOC_LABELS = {
   '00985A':'00985A 台股','2330':'2330 台積電','00631L':'00631L 槓桿',
-  '00646':'00646 美股','00990B':'00990B 債券','dragon':'小龍基金','cash':'現金備用'
+  '00646':'00646 美股','00990B':'00990B 債券','dragon':'小龍基金','cash':'現金備用','esop':'國泰金員工持股'
 };
 
 function loadPortfolio() {
@@ -1106,6 +1132,7 @@ function loadPortfolio() {
       }
     });
     if (saved.cash) document.getElementById('p-cash-amount').value = saved.cash;
+    if (saved.esop_price) document.getElementById('p-esop-price').value = saved.esop_price;
     if (saved.dragonQty) document.getElementById('h-dragon-qty') && (document.getElementById('h-dragon-cost').textContent = '$' + saved.dragonCost);
     if (saved.lastUpdate) document.getElementById('p-last-update').textContent = saved.lastUpdate;
     calcPortfolio(saved);
@@ -1120,6 +1147,8 @@ function savePortfolio() {
   });
   const cash = document.getElementById('p-cash-amount').value;
   if (cash) data.cash = parseFloat(cash);
+  const esop = document.getElementById('p-esop-price').value;
+  if (esop) data.esop_price = parseFloat(esop);
   localStorage.setItem(PORTFOLIO_KEY, JSON.stringify(data));
   calcPortfolio(data);
   showToast('✓ 市價已更新');
